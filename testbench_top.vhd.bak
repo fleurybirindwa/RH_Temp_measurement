@@ -1,0 +1,117 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+-- library labb2;
+library std;
+use std.textio.all;
+
+entity testbench_top is
+end entity testbench_top;
+
+architecture bhv of testbench_top is 
+
+-- Input signals to DUT
+	signal p1,p2 : std_logic_vector(2 downto 0);
+	signal reset_n : std_logic;
+	signal kill_clock : std_logic;
+	signal clock_50 : std_logic;
+-- Output signals from DUT
+	signal sum :std_logic_vector(3 downto 0);
+
+
+procedure pr_write(v_input_str : in string) is
+	variable v_line : line;
+	begin
+		write(v_line,v_input_str);
+		writeline(OUTPUT, v_line);
+end procedure pr_write;
+
+component labb2 is 
+	port(
+			p1, p2 : in std_logic_vector(2 downto 0);
+			clk : in std_logic;
+			reset_n: std_logic; 
+			sum : out std_logic_vector(3 downto 0));
+end component labb2;
+
+begin
+svar : labb2
+	port map(
+		p1=> p1,
+		p2=> p2,
+		clk => clock_50,
+		reset_n => reset_n,
+		sum => sum
+		
+	);
+
+--p_generate_clock : process
+--begin
+--clk <= '0';
+--wait for 800ns;
+--clk <= '1';
+--wait;
+--end process p_generate_clock;
+	
+
+   p_generate_clock : process
+   begin
+	    kill_clock <='0';
+      clock_50 <= '0';
+      wait for 10 ns;
+      while ( kill_clock = '0' ) loop
+         clock_50 <= not clock_50;
+         wait for 10 ns;
+      end loop;
+      -- wait forever;
+      wait;
+   end process p_generate_clock;
+	
+	
+	
+	
+p_generate_reset : process
+begin
+--set reset active
+	
+	reset_n <='0';
+	wait for 123 ns;
+--set reset inactiv
+	
+	reset_n <='1';
+-- wait forever
+	wait;
+end process p_generate_reset;
+
+	clk_pross : process
+	begin
+	wait until reset_n= '1';
+	wait for 100 ns;
+	p1 <= "101";
+	p2 <= "101";
+	wait for 500 ns;
+	wait until clock_50 = '1';
+	wait for 100ns;
+	if (sum = "1010") then
+	pr_write ("Test okej");
+	else
+	pr_write("funkar ej ");
+	end if;
+	
+	
+	
+	wait for 100 ns;
+	p1 <= "110";
+	p2 <= "101";
+	wait for 500 ns;
+	wait until clock_50 = '1';
+	wait for 100ns;
+	if (sum = "1001") then
+	pr_write ("Test okej");
+	else
+	pr_write("funkar ej ");
+	end if;
+	
+	
+end process;
+end architecture bhv;
